@@ -1,4 +1,4 @@
-# project-aeroflow
+# Project Aeroflow
 
 🛫 Real-Time Airline Delay Analytics Pipeline
 
