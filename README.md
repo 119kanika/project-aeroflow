@@ -33,7 +33,7 @@ Dashboarding	Snowsight (native Snowflake UI)	Visualization and KPI dashboards
 |   FastAPI / CSV   |
 |   Local Producer  |
 +---------+---------+
-          |
+          |  
           v
 +-------------------+
 | Apache Kafka      |
@@ -80,7 +80,7 @@ Dashboarding	Snowsight (native Snowflake UI)	Visualization and KPI dashboards
 
 
 
- 4. Data Ingestion Layer
+ 4.  Data Ingestion Layer
 
 Step 1: Local Kafka Producer
 	•	A Python script (produce_send_rows.py) simulated a real-time producer.
@@ -108,7 +108,7 @@ Purpose: decouple ingestion from processing, ensuring reliability & scalability.
 
 
 
- 5. Bronze Layer (Raw Data Storage)
+ 5.  Bronze Layer (Raw Data Storage)
 	•	Event Hubs Capture wrote Avro-formatted messages into Azure Blob.
 	•	Each message contained binary data under body — encoded JSON strings.
 
@@ -251,7 +251,7 @@ GOLD_MASTER, GOLD_CARRIER, GOLD_MONTHLY, GOLD_CAUSES.
 
 
 
-📈9. Dashboard & BI (Snowsight Visualization)
+9.  Dashboard & BI (Snowsight Visualization)
 
 Using Snowflake Snowsight, a live dashboard was created.
 
@@ -274,7 +274,7 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 
 
 
- 10. Automation & Scalability
+10.  Automation & Scalability
 	•	The pipeline is designed for continuous streaming ingestion.
 	•	Azure Event Hubs Capture and Databricks Auto Loader can continuously fetch incremental data.
 	•	Gold → Snowflake can be scheduled via:
@@ -283,7 +283,7 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 	•	Airflow / ADF (future extension)
 
 
- 11. Key Learnings and Highlights
+11.  Key Learnings and Highlights
 	•	End-to-end real-time streaming pipeline without traditional ETL servers.
 	•	Integration of Kafka + Event Hubs with Azure Blob Storage for low-cost raw data retention.
 	•	PySpark in Databricks for heavy-lift transformations (Silver → Gold).
@@ -292,7 +292,7 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 
 
 
- 12. Potential Future Enhancements
+12.  Potential Future Enhancements
 	•	Implement Delta Live Tables or Auto Loader in Databricks for real-time ingestion.
 	•	Add Airflow orchestration for full automation.
 	•	Enable Snowflake Streams + Tasks for incremental refresh.
@@ -301,7 +301,7 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 
 
 
- 13. Outcome
+13.  Outcome
 
  Fully functional, scalable real-time analytics pipeline demonstrating:
 	•	Real-time ingestion → Streaming → Transformations → Warehousing → Visualization
