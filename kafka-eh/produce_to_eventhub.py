@@ -26,13 +26,13 @@ def parse_args():
     return p.parse_args()
 
 def make_producer(bootstrap):
-    # Important: sasl.username must be the literal "$ConnectionString"
+
     conf = {
         "bootstrap.servers": bootstrap,
         "security.protocol": "SASL_SSL",
         "sasl.mechanisms": "PLAIN",
-        "sasl.username": "$ConnectionString",  # literal required by Event Hubs
-        "sasl.password": os.environ.get("EVENTHUB_CONN"),  # entire connection string from Azure
+        "sasl.username": "$ConnectionString", 
+        "sasl.password": os.environ.get("EVENTHUB_CONN"), 
         # tuning
         "queue.buffering.max.messages": 1000000,
         "queue.buffering.max.ms": 1000,
@@ -48,9 +48,9 @@ def delivery_report(err, msg, stats):
         print(f"[DELIVERY FAILED] topic={msg.topic()} partition={msg.partition()} error={err}")
     else:
         stats['delivered'] += 1
-        # optional small log
-        # print(f"[DELIVERED] {msg.topic()} [{msg.partition()}] @ {msg.offset()}")
-    # always poll in callback context isn't necessary; main loop polls
+
+
+
 
 def stream_csv(producer, csv_path, topic, batch_size, key_field=None, delimiter=","):
     total = 0
@@ -63,13 +63,13 @@ def stream_csv(producer, csv_path, topic, batch_size, key_field=None, delimiter=
             print(f"Warning: key-field '{key_field}' not in CSV columns. Ignoring key.")
             key_field = None
 
-        # Precompute total rows? avoid for big files (we'll not rely on len)
+
         print("Starting produce loop...")
         batch_counter = 0
 
         for row in reader:
             total += 1
-            # Convert row to JSON string (you can transform fields here if needed)
+            # Convert row to JSON string 
             value = json.dumps(row)
             key = None
             if key_field:
@@ -79,7 +79,7 @@ def stream_csv(producer, csv_path, topic, batch_size, key_field=None, delimiter=
                 producer.produce(topic=topic, value=value.encode("utf-8"), key=(key.encode("utf-8") if key else None),
                                  callback=lambda err, msg, s=stats: delivery_report(err, msg, s))
             except BufferError:
-                # local queue is full: force a flush/poll and retry once
+
                 producer.poll(1)
                 producer.flush(5)
                 producer.produce(topic=topic, value=value.encode("utf-8"), key=(key.encode("utf-8") if key else None),
