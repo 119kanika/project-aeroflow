@@ -18,14 +18,14 @@ def send_payload(producer: EventHubProducerClient, payload: str):
 
     event = EventData(payload)
 
-    # Try to add; if it doesn't fit, send current batch and retry in a fresh batch.
+
     try:
         batch.add(event)
         producer.send_batch(batch)
         return True
     except ValueError:
-        # payload didn't fit into an empty batch — too large for max message size
-        # Try sending as single EventData by creating a batch with the size of the single event:
+
+
         try:
             single = producer.create_batch(max_size_in_bytes=1024*1024*4)  # attempt larger (4MB)
             single.add(event)
