@@ -1,6 +1,6 @@
 # Project Aeroflow
 
-🛫 Real-Time Airline Delay Analytics Pipeline
+Real-Time Airline Delay Analytics Pipeline
 
 <img width="1377" height="654" alt="Screenshot 2025-11-09 at 12 05 12 AM" src="https://github.com/user-attachments/assets/4bb856b7-5152-41c1-ba2d-da48f69d4ba7" />
 
@@ -304,7 +304,64 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 
 
 
-13.  Outcome
+13. Known Issues & Design Notes
+
+This section documents intentional design decisions, known gaps, and things that would be addressed in a production version of this pipeline.
+
+---
+
+**Gold Notebook — Delta write cells are commented out (ETL/flight_gold_transformation.ipynb, Cell 10)**
+
+The original plan was to write Gold aggregations in Delta format. This was abandoned because Snowflake's external stage and `COPY INTO` command supports Parquet directly but not Delta (which includes transaction logs and metadata files that Snowflake cannot parse). The write logic was moved to Cell 12 which uses `write_parquet()` instead. The commented-out Delta cells were intentionally left in to show the evolution of the design decision but can be safely removed.
+
+---
+
+**Gold Notebook — Hive metastore registration points at non-existent Delta paths (Cell 11)**
+
+`CREATE TABLE IF NOT EXISTS gold_monthly USING DELTA LOCATION '...'` references the Delta paths from the abandoned approach above. Since those Delta files were never written, these statements would fail if run. They are a leftover from the original design and should be removed or updated to register Parquet paths if Databricks SQL access to Gold is needed.
+
+---
+
+**Silver Notebook — Unused streaming cells (ETL/flight-silver-transformation.ipynb, Cells 1 & 2)**
+
+These cells attempt to read directly from Azure Event Hubs as a live Spark stream using `spark.readStream`. This was an early design approach — reading from the stream in real time instead of from Avro files captured to Bronze. The approach was replaced by reading from Bronze Avro files (Cell 4 onwards) for reliability and reproducibility. The streaming cells have an empty `eh_connection_string = ""` and will not execute. They are retained as documentation of the design iteration.
+
+---
+
+**Warehouse Notebook — Hardcoded Snowflake password (Warehouse/NB_AIRLINE_DELAY_GOLD.ipynb, Cell 2)**
+
+```sql
+CREATE USER IF NOT EXISTS etl_user
+  PASSWORD = 'Airline_delay'   -- demo password, not used in production
+```
+
+This is a plaintext password for a personal Snowflake trial account used during development. The Snowflake trial account has since expired and this password is no longer active. In a production setup this would use key-pair authentication or an externally managed secret (e.g. Azure Key Vault).
+
+---
+
+**Kafka/Docker setup not included in this repo**
+
+The local development phase used Apache Kafka, Kafka Connect, and a Confluent Azure Blob Sink connector running via Docker Compose. This setup was used for local testing before migrating to Azure Event Hubs. The Docker Compose files and connector configurations are not included in this repo — only the cloud-side producer scripts (`kafka-eh/`) and Databricks notebooks are versioned here. The cloud pipeline (Event Hubs → Blob → Databricks → Snowflake) is fully self-contained within this repo.
+
+---
+
+**produce_send_rows.py — Default interval is 900 seconds**
+
+The `--interval` flag defaults to 900 seconds (15 minutes) between rows to simulate realistic live airport feed timing. For local testing, run with `--interval 1` or `--interval 5` instead:
+
+```bash
+python produce_send_rows.py --interval 5
+```
+
+---
+
+**Credentials in this repo**
+
+All sensitive values (storage account keys, SAS tokens, Event Hubs connection strings) are intentionally left as empty strings in the notebooks. The connection string is loaded at runtime from an environment variable (`EVENTHUB_CONN`). No real credentials are present in the commit history.
+
+---
+
+14.  Outcome
 
  Fully functional, scalable real-time analytics pipeline demonstrating:
 	•	Real-time ingestion → Streaming → Transformations → Warehousing → Visualization
@@ -313,4 +370,13 @@ Table	v_master_clean	Detailed drilldown by airport & carrier
 
 End-to-End Flow:
 Producer → Kafka (Event Hubs) → Blob (Bronze) → Databricks (Silver/Gold) → Snowflake (BI)
+
+
+
+
+
+
+
+
+
 
